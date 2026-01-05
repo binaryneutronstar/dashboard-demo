@@ -35,121 +35,128 @@ export function InventoryList({ items, onActionClick }: InventoryListProps) {
 
     let icon
     let label
-    let colorClass = 'border-gray-300 text-gray-700 hover:bg-gray-50'
+    let buttonClass = ''
 
     switch (actionType) {
       case 'replenishment_adjust':
-        icon = <TrendingUp className="w-4 h-4" />
-        label = '発注調整'
-        if (isRecommended) colorClass = 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100'
+        icon = <TrendingUp className="w-3.5 h-3.5" />
+        label = '発注'
+        buttonClass = isRecommended
+          ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-sm'
+          : 'border-gray-300 text-gray-600 hover:border-blue-400 hover:bg-blue-50'
         break
       case 'transfer':
-        icon = <Package className="w-4 h-4" />
-        label = '在庫移動'
-        if (isRecommended) colorClass = 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100'
+        icon = <Package className="w-3.5 h-3.5" />
+        label = '移動'
+        buttonClass = isRecommended
+          ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-sm'
+          : 'border-gray-300 text-gray-600 hover:border-blue-400 hover:bg-blue-50'
         break
       case 'markdown_promo':
-        icon = <Tag className="w-4 h-4" />
-        label = '値下げ/販促'
-        if (isRecommended) colorClass = 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100'
+        icon = <Tag className="w-3.5 h-3.5" />
+        label = '販促'
+        buttonClass = isRecommended
+          ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white border-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-sm'
+          : 'border-gray-300 text-gray-600 hover:border-blue-400 hover:bg-blue-50'
         break
     }
 
     return (
       <button
         onClick={() => onActionClick(item, actionType)}
-        className={`inline-flex items-center gap-1 px-3 py-1.5 border rounded-lg text-xs font-medium transition-colors ${colorClass}`}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-md text-xs font-semibold transition-all ${buttonClass}`}
         title={isRecommended ? item.recommendedAction?.description : ''}
       >
         {icon}
-        {label}
+        <span>{label}</span>
       </button>
     )
   }
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full">
+      <table className="w-full border-collapse">
         <thead>
-          <tr className="border-b border-gray-200 bg-gray-50">
-            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+          <tr className="border-b-2 border-gray-300 bg-gradient-to-r from-gray-50 to-gray-100">
+            <th className="px-3 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
               優先度
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+            <th className="px-3 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
               商品名
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+            <th className="px-3 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
               カテゴリ
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+            <th className="px-3 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
               地域/店舗
             </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">
+            <th className="px-3 py-2.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
               現在庫
             </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">
+            <th className="px-3 py-2.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
               販売速度
             </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">
+            <th className="px-3 py-2.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
               欠品リスク
             </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">
+            <th className="px-3 py-2.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
               過剰在庫
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+            <th className="px-3 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-r border-gray-200">
               推奨アクション
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+            <th className="px-3 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
               アクション
             </th>
           </tr>
         </thead>
-        <tbody>
-          {items.map((item) => (
+        <tbody className="bg-white divide-y divide-gray-100">
+          {items.map((item, index) => (
             <tr
               key={item.id}
-              className="border-b border-gray-100 hover:bg-gray-50"
+              className={`hover:bg-blue-50/50 transition-colors ${
+                index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'
+              }`}
             >
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
+              <td className="px-3 py-2 border-r border-gray-100">
+                <div className="flex items-center gap-1.5">
                   {getPriorityBadge(item.priorityScore)}
-                  <span className="text-xs text-gray-500" title={`スコア: ${item.priorityScore}`}>
+                  <span className="text-xs text-gray-500 font-mono" title={`スコア: ${item.priorityScore}`}>
                     {item.priorityScore}
                   </span>
                 </div>
               </td>
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-900">
-                    {item.name}
-                  </span>
-                  {item.hasActiveAction && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                      対応中
+              <td className="px-3 py-2 border-r border-gray-100">
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-gray-900">
+                      {item.name}
                     </span>
-                  )}
+                    {item.hasActiveAction && (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-gradient-to-r from-blue-500 to-indigo-500 text-white">
+                        対応中
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs text-gray-400 font-mono">{item.id}</span>
                 </div>
-                <span className="text-xs text-gray-500">{item.id}</span>
               </td>
-              <td className="px-4 py-3 text-sm text-gray-900">
+              <td className="px-3 py-2 text-sm text-gray-700 font-medium border-r border-gray-100">
                 {item.category}
               </td>
-              <td className="px-4 py-3 text-sm text-gray-900">
-                {item.region}
+              <td className="px-3 py-2 text-sm text-gray-700 border-r border-gray-100">
+                <div className="font-medium">{item.region}</div>
                 {item.store && (
-                  <>
-                    <br />
-                    <span className="text-xs text-gray-500">{item.store}</span>
-                  </>
+                  <div className="text-xs text-gray-500 mt-0.5">{item.store}</div>
                 )}
               </td>
-              <td className="px-4 py-3 text-right text-sm font-medium text-gray-900">
+              <td className="px-3 py-2 text-right text-sm font-bold text-gray-900 border-r border-gray-100">
                 {item.currentStock}
               </td>
-              <td className="px-4 py-3 text-right text-sm text-gray-900">
-                {item.salesVelocity}/日
+              <td className="px-3 py-2 text-right text-sm text-gray-700 border-r border-gray-100">
+                <span className="font-semibold">{item.salesVelocity}</span><span className="text-xs text-gray-500">/日</span>
               </td>
-              <td className="px-4 py-3 text-right">
+              <td className="px-3 py-2 text-right border-r border-gray-100">
                 <div className="flex flex-col items-end gap-1">
                   <span
                     className={`text-sm font-semibold ${
@@ -172,7 +179,7 @@ export function InventoryList({ items, onActionClick }: InventoryListProps) {
                   )}
                 </div>
               </td>
-              <td className="px-4 py-3 text-right">
+              <td className="px-3 py-2 text-right border-r border-gray-100">
                 <div className="flex flex-col items-end gap-1">
                   <span
                     className={`text-sm font-semibold ${
@@ -188,34 +195,36 @@ export function InventoryList({ items, onActionClick }: InventoryListProps) {
                   {item.actionEffect && item.actionEffect.projectedExcessRisk !== item.excessInventoryRisk && (
                     <div className="flex items-center gap-1 text-xs">
                       <ArrowDown className="w-3 h-3 text-blue-600" />
-                      <span className="text-blue-600 font-medium">
+                      <span className="text-blue-600 font-semibold">
                         {item.actionEffect.projectedExcessRisk}%
                       </span>
                     </div>
                   )}
                 </div>
               </td>
-              <td className="px-4 py-3">
-                <div className="space-y-1">
+              <td className="px-3 py-2 border-r border-gray-100">
+                <div className="space-y-1.5">
                   {item.recommendedAction ? (
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-blue-600" />
-                      <span className="text-sm font-medium text-blue-700">
-                        {item.recommendedAction.label}
-                      </span>
-                    </div>
+                    <>
+                      <div className="flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5 text-blue-600" />
+                        <span className="text-xs font-bold text-blue-700">
+                          {item.recommendedAction.label}
+                        </span>
+                      </div>
+                      {item.actionEffect && (
+                        <div className="inline-block px-2 py-1 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded text-xs text-emerald-800 font-medium">
+                          💡 {item.actionEffect.expectedImpact}
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <span className="text-sm text-gray-400">-</span>
                   )}
-                  {item.actionEffect && (
-                    <div className="text-xs text-gray-600 max-w-xs">
-                      {item.actionEffect.expectedImpact}
-                    </div>
-                  )}
                 </div>
               </td>
-              <td className="px-4 py-3">
-                <div className="flex flex-wrap gap-2">
+              <td className="px-3 py-2">
+                <div className="flex flex-wrap gap-1.5">
                   {getActionButton(item, 'replenishment_adjust')}
                   {getActionButton(item, 'transfer')}
                   {getActionButton(item, 'markdown_promo')}

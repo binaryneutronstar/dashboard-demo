@@ -6,7 +6,7 @@ import type {
   KPISnapshot,
   OutcomeLabel,
 } from '../types/inventory'
-import { Clock, Package, TrendingUp, Tag, ArrowRight, Sparkles } from 'lucide-react'
+import { Clock, Package, TrendingUp, Tag, ArrowRight, Sparkles, ArrowDown, ArrowUp, Minus } from 'lucide-react'
 
 // 自動コメント生成関数
 const generateAutoComment = (
@@ -130,6 +130,63 @@ const generateKPIAfter = (
   return { after, outcomeLabel: outcome }
 }
 
+// ステップインジケーターコンポーネント
+const StatusStepIndicator = ({ currentStatus }: { currentStatus: string }) => {
+  const steps = [
+    { id: 'proposed', label: '提案' },
+    { id: 'approved', label: '承認' },
+    { id: 'executed', label: '実行' },
+    { id: 'evaluated', label: '評価' },
+  ]
+
+  const getStepIndex = (status: string) => {
+    if (status === 'cancelled') return -1
+    return steps.findIndex((s) => s.id === status)
+  }
+
+  const currentIndex = getStepIndex(currentStatus)
+
+  return (
+    <div className="flex items-center gap-1 mb-3">
+      {steps.map((step, index) => {
+        const isActive = index <= currentIndex
+        const isCurrent = index === currentIndex
+        return (
+          <div key={step.id} className="flex items-center flex-1">
+            <div className="flex flex-col items-center flex-1">
+              <div
+                className={`w-full h-1.5 rounded-full transition-all ${
+                  isActive
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600'
+                    : 'bg-gray-200'
+                }`}
+              />
+              <span
+                className={`text-xs mt-1 font-medium ${
+                  isCurrent
+                    ? 'text-blue-700 font-semibold'
+                    : isActive
+                    ? 'text-blue-600'
+                    : 'text-gray-400'
+                }`}
+              >
+                {step.label}
+              </span>
+            </div>
+            {index < steps.length - 1 && (
+              <div
+                className={`w-2 h-1.5 ${
+                  index < currentIndex ? 'bg-blue-600' : 'bg-gray-200'
+                }`}
+              />
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export function ActionsAndOutcomes() {
   const [logs, setLogs] = useState<ActionLog[]>([])
   const [filteredLogs, setFilteredLogs] = useState<ActionLog[]>([])
@@ -200,6 +257,10 @@ export function ActionsAndOutcomes() {
     }
 
     ActionLogRepository.save(updatedLog)
+
+    // カスタムイベントを発火してApp側の未評価カウントを更新
+    window.dispatchEvent(new Event('actionLogsUpdated'))
+
     loadLogs()
     setSelectedLog(updatedLog)
   }
@@ -375,10 +436,13 @@ export function ActionsAndOutcomes() {
                 onClick={() => setSelectedLog(log)}
                 className={`bg-white border rounded-lg p-4 cursor-pointer transition-all ${
                   selectedLog?.action_id === log.action_id
-                    ? 'border-blue-500 ring-2 ring-blue-200'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-blue-500 ring-2 ring-blue-200 shadow-md'
+                    : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
+                {/* ステップインジケーター */}
+                <StatusStepIndicator currentStatus={log.status} />
+
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     {getActionTypeIcon(log.action_type)}
@@ -514,242 +578,271 @@ export function ActionsAndOutcomes() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-sm font-semibold text-gray-700">
-                      KPI Before/After
+                      KPI Before/After 比較
                     </h3>
                     {selectedLog.outcome_label && (
                       <div>{getOutcomeBadge(selectedLog.outcome_label)}</div>
                     )}
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-gray-200">
-                          <th className="text-left py-2 text-xs font-semibold text-gray-600">
+                        <tr className="border-b-2 border-gray-300">
+                          <th className="text-left py-2 px-2 text-xs font-bold text-gray-700 uppercase tracking-wide">
                             指標
                           </th>
-                          <th className="text-right py-2 text-xs font-semibold text-gray-600">
+                          <th className="text-right py-2 px-2 text-xs font-bold text-gray-700 uppercase tracking-wide">
                             Before
                           </th>
-                          <th className="text-center py-2 text-xs font-semibold text-gray-600">
+                          <th className="text-center py-2 px-1 text-xs font-bold text-gray-700 uppercase tracking-wide">
 
                           </th>
-                          <th className="text-right py-2 text-xs font-semibold text-gray-600">
+                          <th className="text-right py-2 px-2 text-xs font-bold text-gray-700 uppercase tracking-wide">
                             After
                           </th>
-                          <th className="text-right py-2 text-xs font-semibold text-gray-600">
-                            差分
+                          <th className="text-right py-2 px-2 text-xs font-bold text-gray-700 uppercase tracking-wide">
+                            変化
                           </th>
                         </tr>
                       </thead>
-                      <tbody>
-                        <tr className="border-b border-gray-100">
-                          <td className="py-2 text-gray-700">欠品リスク</td>
-                          <td className="text-right font-medium">
-                            {selectedLog.kpi_snapshot_before.stockoutRisk}%
+                      <tbody className="divide-y divide-gray-200">
+                        <tr className="bg-white hover:bg-gray-50 transition-colors">
+                          <td className="py-3 px-2 text-gray-900 font-medium">欠品リスク</td>
+                          <td className="text-right font-semibold px-2">
+                            <span className="inline-block px-2 py-1 bg-gray-100 rounded text-gray-900">
+                              {selectedLog.kpi_snapshot_before.stockoutRisk}%
+                            </span>
                           </td>
-                          <td className="text-center">
+                          <td className="text-center px-1">
                             {selectedLog.kpi_snapshot_after && (
-                              <ArrowRight className="w-4 h-4 inline text-gray-400" />
+                              <ArrowRight className="w-4 h-4 inline text-blue-400" />
                             )}
                           </td>
-                          <td className="text-right font-medium">
-                            {selectedLog.kpi_snapshot_after
-                              ? `${selectedLog.kpi_snapshot_after.stockoutRisk}%`
-                              : '-'}
-                          </td>
-                          <td className="text-right">
-                            {selectedLog.kpi_snapshot_after && (
-                              <span
-                                className={
-                                  selectedLog.kpi_snapshot_before.stockoutRisk -
-                                    selectedLog.kpi_snapshot_after.stockoutRisk >
-                                  0
-                                    ? 'text-green-600 font-semibold'
-                                    : 'text-red-600 font-semibold'
-                                }
-                              >
-                                {selectedLog.kpi_snapshot_before.stockoutRisk -
-                                  selectedLog.kpi_snapshot_after.stockoutRisk >
-                                0
-                                  ? '-'
-                                  : '+'}
-                                {Math.abs(
-                                  selectedLog.kpi_snapshot_before.stockoutRisk -
-                                    selectedLog.kpi_snapshot_after.stockoutRisk
-                                )}
-                                pt
+                          <td className="text-right font-semibold px-2">
+                            {selectedLog.kpi_snapshot_after ? (
+                              <span className="inline-block px-2 py-1 bg-blue-50 rounded text-gray-900">
+                                {selectedLog.kpi_snapshot_after.stockoutRisk}%
                               </span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
                             )}
+                          </td>
+                          <td className="text-right px-2">
+                            {selectedLog.kpi_snapshot_after && (() => {
+                              const diff = selectedLog.kpi_snapshot_before.stockoutRisk - selectedLog.kpi_snapshot_after.stockoutRisk
+                              const isImproved = diff > 0
+                              return (
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2 py-1 rounded font-semibold ${
+                                    isImproved
+                                      ? 'bg-green-100 text-green-700'
+                                      : diff < 0
+                                      ? 'bg-red-100 text-red-700'
+                                      : 'bg-gray-100 text-gray-600'
+                                  }`}
+                                >
+                                  {isImproved ? (
+                                    <ArrowDown className="w-3.5 h-3.5" />
+                                  ) : diff < 0 ? (
+                                    <ArrowUp className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <Minus className="w-3.5 h-3.5" />
+                                  )}
+                                  {Math.abs(diff)}pt
+                                </span>
+                              )
+                            })()}
                           </td>
                         </tr>
-                        <tr className="border-b border-gray-100">
-                          <td className="py-2 text-gray-700">過剰在庫リスク</td>
-                          <td className="text-right font-medium">
-                            {selectedLog.kpi_snapshot_before.excessInventoryRisk}
-                            %
+                        <tr className="bg-white hover:bg-gray-50 transition-colors">
+                          <td className="py-3 px-2 text-gray-900 font-medium">過剰在庫リスク</td>
+                          <td className="text-right font-semibold px-2">
+                            <span className="inline-block px-2 py-1 bg-gray-100 rounded text-gray-900">
+                              {selectedLog.kpi_snapshot_before.excessInventoryRisk}%
+                            </span>
                           </td>
-                          <td className="text-center">
+                          <td className="text-center px-1">
                             {selectedLog.kpi_snapshot_after && (
-                              <ArrowRight className="w-4 h-4 inline text-gray-400" />
+                              <ArrowRight className="w-4 h-4 inline text-blue-400" />
                             )}
                           </td>
-                          <td className="text-right font-medium">
-                            {selectedLog.kpi_snapshot_after
-                              ? `${selectedLog.kpi_snapshot_after.excessInventoryRisk}%`
-                              : '-'}
-                          </td>
-                          <td className="text-right">
-                            {selectedLog.kpi_snapshot_after && (
-                              <span
-                                className={
-                                  selectedLog.kpi_snapshot_before
-                                    .excessInventoryRisk -
-                                    selectedLog.kpi_snapshot_after
-                                      .excessInventoryRisk >
-                                  0
-                                    ? 'text-green-600 font-semibold'
-                                    : 'text-red-600 font-semibold'
-                                }
-                              >
-                                {selectedLog.kpi_snapshot_before
-                                  .excessInventoryRisk -
-                                  selectedLog.kpi_snapshot_after
-                                    .excessInventoryRisk >
-                                0
-                                  ? '-'
-                                  : '+'}
-                                {Math.abs(
-                                  selectedLog.kpi_snapshot_before
-                                    .excessInventoryRisk -
-                                    selectedLog.kpi_snapshot_after
-                                      .excessInventoryRisk
-                                )}
-                                pt
+                          <td className="text-right font-semibold px-2">
+                            {selectedLog.kpi_snapshot_after ? (
+                              <span className="inline-block px-2 py-1 bg-blue-50 rounded text-gray-900">
+                                {selectedLog.kpi_snapshot_after.excessInventoryRisk}%
                               </span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
                             )}
+                          </td>
+                          <td className="text-right px-2">
+                            {selectedLog.kpi_snapshot_after && (() => {
+                              const diff = selectedLog.kpi_snapshot_before.excessInventoryRisk - selectedLog.kpi_snapshot_after.excessInventoryRisk
+                              const isImproved = diff > 0
+                              return (
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2 py-1 rounded font-semibold ${
+                                    isImproved
+                                      ? 'bg-green-100 text-green-700'
+                                      : diff < 0
+                                      ? 'bg-red-100 text-red-700'
+                                      : 'bg-gray-100 text-gray-600'
+                                  }`}
+                                >
+                                  {isImproved ? (
+                                    <ArrowDown className="w-3.5 h-3.5" />
+                                  ) : diff < 0 ? (
+                                    <ArrowUp className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <Minus className="w-3.5 h-3.5" />
+                                  )}
+                                  {Math.abs(diff)}pt
+                                </span>
+                              )
+                            })()}
                           </td>
                         </tr>
-                        <tr className="border-b border-gray-100">
-                          <td className="py-2 text-gray-700">在庫回転日数</td>
-                          <td className="text-right font-medium">
-                            {selectedLog.kpi_snapshot_before.inventoryTurnoverDays}
-                            日
+                        <tr className="bg-white hover:bg-gray-50 transition-colors">
+                          <td className="py-3 px-2 text-gray-900 font-medium">在庫回転日数</td>
+                          <td className="text-right font-semibold px-2">
+                            <span className="inline-block px-2 py-1 bg-gray-100 rounded text-gray-900">
+                              {selectedLog.kpi_snapshot_before.inventoryTurnoverDays}日
+                            </span>
                           </td>
-                          <td className="text-center">
+                          <td className="text-center px-1">
                             {selectedLog.kpi_snapshot_after && (
-                              <ArrowRight className="w-4 h-4 inline text-gray-400" />
+                              <ArrowRight className="w-4 h-4 inline text-blue-400" />
                             )}
                           </td>
-                          <td className="text-right font-medium">
-                            {selectedLog.kpi_snapshot_after
-                              ? `${selectedLog.kpi_snapshot_after.inventoryTurnoverDays}日`
-                              : '-'}
-                          </td>
-                          <td className="text-right">
-                            {selectedLog.kpi_snapshot_after && (
-                              <span
-                                className={
-                                  selectedLog.kpi_snapshot_before
-                                    .inventoryTurnoverDays -
-                                    selectedLog.kpi_snapshot_after
-                                      .inventoryTurnoverDays >
-                                  0
-                                    ? 'text-green-600 font-semibold'
-                                    : 'text-red-600 font-semibold'
-                                }
-                              >
-                                {selectedLog.kpi_snapshot_before
-                                  .inventoryTurnoverDays -
-                                  selectedLog.kpi_snapshot_after
-                                    .inventoryTurnoverDays >
-                                0
-                                  ? '-'
-                                  : '+'}
-                                {Math.abs(
-                                  selectedLog.kpi_snapshot_before
-                                    .inventoryTurnoverDays -
-                                    selectedLog.kpi_snapshot_after
-                                      .inventoryTurnoverDays
-                                )}
-                                日
+                          <td className="text-right font-semibold px-2">
+                            {selectedLog.kpi_snapshot_after ? (
+                              <span className="inline-block px-2 py-1 bg-blue-50 rounded text-gray-900">
+                                {selectedLog.kpi_snapshot_after.inventoryTurnoverDays}日
                               </span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
                             )}
+                          </td>
+                          <td className="text-right px-2">
+                            {selectedLog.kpi_snapshot_after && (() => {
+                              const diff = selectedLog.kpi_snapshot_before.inventoryTurnoverDays - selectedLog.kpi_snapshot_after.inventoryTurnoverDays
+                              const isImproved = diff > 0
+                              return (
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2 py-1 rounded font-semibold ${
+                                    isImproved
+                                      ? 'bg-green-100 text-green-700'
+                                      : diff < 0
+                                      ? 'bg-red-100 text-red-700'
+                                      : 'bg-gray-100 text-gray-600'
+                                  }`}
+                                >
+                                  {isImproved ? (
+                                    <ArrowDown className="w-3.5 h-3.5" />
+                                  ) : diff < 0 ? (
+                                    <ArrowUp className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <Minus className="w-3.5 h-3.5" />
+                                  )}
+                                  {Math.abs(diff)}日
+                                </span>
+                              )
+                            })()}
                           </td>
                         </tr>
-                        <tr className="border-b border-gray-100">
-                          <td className="py-2 text-gray-700">販売速度</td>
-                          <td className="text-right font-medium">
-                            {selectedLog.kpi_snapshot_before.salesVelocity}/日
+                        <tr className="bg-white hover:bg-gray-50 transition-colors">
+                          <td className="py-3 px-2 text-gray-900 font-medium">販売速度</td>
+                          <td className="text-right font-semibold px-2">
+                            <span className="inline-block px-2 py-1 bg-gray-100 rounded text-gray-900">
+                              {selectedLog.kpi_snapshot_before.salesVelocity}/日
+                            </span>
                           </td>
-                          <td className="text-center">
+                          <td className="text-center px-1">
                             {selectedLog.kpi_snapshot_after && (
-                              <ArrowRight className="w-4 h-4 inline text-gray-400" />
+                              <ArrowRight className="w-4 h-4 inline text-blue-400" />
                             )}
                           </td>
-                          <td className="text-right font-medium">
-                            {selectedLog.kpi_snapshot_after
-                              ? `${selectedLog.kpi_snapshot_after.salesVelocity}/日`
-                              : '-'}
-                          </td>
-                          <td className="text-right">
-                            {selectedLog.kpi_snapshot_after && (
-                              <span
-                                className={
-                                  selectedLog.kpi_snapshot_after.salesVelocity -
-                                    selectedLog.kpi_snapshot_before.salesVelocity >
-                                  0
-                                    ? 'text-green-600 font-semibold'
-                                    : 'text-red-600 font-semibold'
-                                }
-                              >
-                                {selectedLog.kpi_snapshot_after.salesVelocity -
-                                  selectedLog.kpi_snapshot_before.salesVelocity >
-                                0
-                                  ? '+'
-                                  : ''}
-                                {(
-                                  selectedLog.kpi_snapshot_after.salesVelocity -
-                                  selectedLog.kpi_snapshot_before.salesVelocity
-                                ).toFixed(1)}
+                          <td className="text-right font-semibold px-2">
+                            {selectedLog.kpi_snapshot_after ? (
+                              <span className="inline-block px-2 py-1 bg-blue-50 rounded text-gray-900">
+                                {selectedLog.kpi_snapshot_after.salesVelocity}/日
                               </span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
                             )}
+                          </td>
+                          <td className="text-right px-2">
+                            {selectedLog.kpi_snapshot_after && (() => {
+                              const diff = selectedLog.kpi_snapshot_after.salesVelocity - selectedLog.kpi_snapshot_before.salesVelocity
+                              const isImproved = diff > 0
+                              return (
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2 py-1 rounded font-semibold ${
+                                    isImproved
+                                      ? 'bg-green-100 text-green-700'
+                                      : diff < 0
+                                      ? 'bg-red-100 text-red-700'
+                                      : 'bg-gray-100 text-gray-600'
+                                  }`}
+                                >
+                                  {isImproved ? (
+                                    <ArrowUp className="w-3.5 h-3.5" />
+                                  ) : diff < 0 ? (
+                                    <ArrowDown className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <Minus className="w-3.5 h-3.5" />
+                                  )}
+                                  {diff > 0 ? '+' : ''}{diff.toFixed(1)}
+                                </span>
+                              )
+                            })()}
                           </td>
                         </tr>
-                        <tr>
-                          <td className="py-2 text-gray-700">現在庫</td>
-                          <td className="text-right font-medium">
-                            {selectedLog.kpi_snapshot_before.currentStock}
+                        <tr className="bg-white hover:bg-gray-50 transition-colors">
+                          <td className="py-3 px-2 text-gray-900 font-medium">現在庫</td>
+                          <td className="text-right font-semibold px-2">
+                            <span className="inline-block px-2 py-1 bg-gray-100 rounded text-gray-900">
+                              {selectedLog.kpi_snapshot_before.currentStock}
+                            </span>
                           </td>
-                          <td className="text-center">
+                          <td className="text-center px-1">
                             {selectedLog.kpi_snapshot_after && (
-                              <ArrowRight className="w-4 h-4 inline text-gray-400" />
+                              <ArrowRight className="w-4 h-4 inline text-blue-400" />
                             )}
                           </td>
-                          <td className="text-right font-medium">
-                            {selectedLog.kpi_snapshot_after
-                              ? selectedLog.kpi_snapshot_after.currentStock
-                              : '-'}
-                          </td>
-                          <td className="text-right">
-                            {selectedLog.kpi_snapshot_after && (
-                              <span
-                                className={
-                                  selectedLog.kpi_snapshot_after.currentStock -
-                                    selectedLog.kpi_snapshot_before.currentStock >
-                                  0
-                                    ? 'text-blue-600 font-semibold'
-                                    : 'text-gray-600 font-semibold'
-                                }
-                              >
-                                {selectedLog.kpi_snapshot_after.currentStock -
-                                  selectedLog.kpi_snapshot_before.currentStock >
-                                0
-                                  ? '+'
-                                  : ''}
-                                {selectedLog.kpi_snapshot_after.currentStock -
-                                  selectedLog.kpi_snapshot_before.currentStock}
+                          <td className="text-right font-semibold px-2">
+                            {selectedLog.kpi_snapshot_after ? (
+                              <span className="inline-block px-2 py-1 bg-blue-50 rounded text-gray-900">
+                                {selectedLog.kpi_snapshot_after.currentStock}
                               </span>
+                            ) : (
+                              <span className="text-gray-400">-</span>
                             )}
+                          </td>
+                          <td className="text-right px-2">
+                            {selectedLog.kpi_snapshot_after && (() => {
+                              const diff = selectedLog.kpi_snapshot_after.currentStock - selectedLog.kpi_snapshot_before.currentStock
+                              return (
+                                <span
+                                  className={`inline-flex items-center gap-1 px-2 py-1 rounded font-semibold ${
+                                    diff > 0
+                                      ? 'bg-blue-100 text-blue-700'
+                                      : diff < 0
+                                      ? 'bg-orange-100 text-orange-700'
+                                      : 'bg-gray-100 text-gray-600'
+                                  }`}
+                                >
+                                  {diff > 0 ? (
+                                    <ArrowUp className="w-3.5 h-3.5" />
+                                  ) : diff < 0 ? (
+                                    <ArrowDown className="w-3.5 h-3.5" />
+                                  ) : (
+                                    <Minus className="w-3.5 h-3.5" />
+                                  )}
+                                  {diff > 0 ? '+' : ''}{diff}
+                                </span>
+                              )
+                            })()}
                           </td>
                         </tr>
                       </tbody>
