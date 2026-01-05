@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Package, FileText, Trash2, Info } from 'lucide-react'
 import { Dashboard } from './pages/Dashboard'
 import { ActionsAndOutcomes } from './pages/ActionsAndOutcomes'
@@ -9,6 +9,7 @@ type Tab = 'dashboard' | 'actionsAndOutcomes'
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard')
   const [showDemoInfo, setShowDemoInfo] = useState(false)
+  const [unevaluatedCount, setUnevaluatedCount] = useState(0)
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'ダッシュボード', icon: <Package className="w-5 h-5" /> },
@@ -16,17 +17,33 @@ function App() {
   ]
 
   // 未評価アウトカム数を計算
-  const getUnevaluatedCount = () => {
+  const updateUnevaluatedCount = () => {
     const logs = ActionLogRepository.getAll()
-    return logs.filter(
+    const count = logs.filter(
       (log) =>
         (log.status === 'approved' || log.status === 'executed') &&
         log.kpi_snapshot_before &&
         !log.kpi_snapshot_after
     ).length
+    setUnevaluatedCount(count)
   }
 
-  const unevaluatedCount = getUnevaluatedCount()
+  // 初期ロード時とタブ切り替え時に更新
+  useEffect(() => {
+    updateUnevaluatedCount()
+  }, [activeTab])
+
+  // カスタムイベントをリスニングして更新
+  useEffect(() => {
+    const handleLogsUpdate = () => {
+      updateUnevaluatedCount()
+    }
+
+    window.addEventListener('actionLogsUpdated', handleLogsUpdate)
+    return () => {
+      window.removeEventListener('actionLogsUpdated', handleLogsUpdate)
+    }
+  }, [])
 
   const handleResetData = () => {
     if (
@@ -36,6 +53,8 @@ function App() {
     ) {
       ActionLogRepository.clear()
       ActionLogRepository.initializeSampleLogs()
+      // カスタムイベントを発火してカウントを更新
+      window.dispatchEvent(new Event('actionLogsUpdated'))
       window.location.reload()
     }
   }

@@ -34,6 +34,9 @@ export function Dashboard() {
     // 初回起動時にサンプルログを初期化
     ActionLogRepository.initializeSampleLogs()
 
+    // カスタムイベントを発火してApp側の未評価カウントを更新
+    window.dispatchEvent(new Event('actionLogsUpdated'))
+
     // 在庫アイテムを生成
     const generatedItems = generateInventoryItems(30)
 
@@ -208,6 +211,9 @@ export function Dashboard() {
 
     // ログを保存
     ActionLogRepository.save(actionLog)
+
+    // カスタムイベントを発火してApp側の未評価カウントを更新
+    window.dispatchEvent(new Event('actionLogsUpdated'))
 
     // アクション効果をアイテムに適用
     if (selectedItem.actionEffect) {

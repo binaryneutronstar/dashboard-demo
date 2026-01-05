@@ -257,6 +257,10 @@ export function ActionsAndOutcomes() {
     }
 
     ActionLogRepository.save(updatedLog)
+
+    // カスタムイベントを発火してApp側の未評価カウントを更新
+    window.dispatchEvent(new Event('actionLogsUpdated'))
+
     loadLogs()
     setSelectedLog(updatedLog)
   }
