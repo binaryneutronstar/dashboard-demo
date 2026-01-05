@@ -1,4 +1,10 @@
 import { useState, useEffect } from 'react'
+import {
+  AlertTriangle,
+  AlertCircle,
+  TrendingUp,
+  Package,
+} from 'lucide-react'
 import { InventoryList } from '../components/inventory/InventoryList'
 import { ActionConfirmModal } from '../components/inventory/ActionConfirmModal'
 import { generateInventoryItems } from '../data/inventoryMockData'
@@ -254,31 +260,126 @@ export function Dashboard() {
 
       {/* サマリーカード */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-sm text-gray-600">総SKU数</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{items.length}</p>
+        {/* 総SKU数 */}
+        <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">総SKU数</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{items.length}</p>
+              <p className="text-xs text-gray-500 mt-1">モニタリング中</p>
+            </div>
+            <div className="p-3 bg-gray-100 rounded-full">
+              <Package className="w-6 h-6 text-gray-600" />
+            </div>
+          </div>
         </div>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-sm text-red-600">高リスクSKU</p>
-          <p className="text-2xl font-bold text-red-700 mt-1">
-            {items.filter((item) => item.priorityScore >= 70).length}
-          </p>
+
+        {/* 高リスクSKU */}
+        <div className="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-red-700 uppercase tracking-wide">高リスクSKU</p>
+              <p className="text-3xl font-bold text-red-800 mt-2">
+                {items.filter((item) => item.priorityScore >= 70).length}
+              </p>
+              <p className="text-xs text-red-600 mt-1">
+                緊急対応が必要
+              </p>
+            </div>
+            <div className="p-3 bg-red-200/50 rounded-full">
+              <AlertTriangle className="w-6 h-6 text-red-700" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="w-full bg-red-200 rounded-full h-1.5">
+              <div
+                className="bg-red-600 h-1.5 rounded-full"
+                style={{
+                  width: `${Math.min(
+                    100,
+                    (items.filter((item) => item.priorityScore >= 70).length /
+                      items.length) *
+                      100 *
+                      2
+                  )}%`,
+                }}
+              ></div>
+            </div>
+          </div>
         </div>
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-sm text-yellow-600">中リスクSKU</p>
-          <p className="text-2xl font-bold text-yellow-700 mt-1">
-            {
-              items.filter(
-                (item) => item.priorityScore >= 40 && item.priorityScore < 70
-              ).length
-            }
-          </p>
+
+        {/* 中リスクSKU */}
+        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 border border-yellow-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-yellow-700 uppercase tracking-wide">中リスクSKU</p>
+              <p className="text-3xl font-bold text-yellow-800 mt-2">
+                {
+                  items.filter(
+                    (item) => item.priorityScore >= 40 && item.priorityScore < 70
+                  ).length
+                }
+              </p>
+              <p className="text-xs text-yellow-600 mt-1">
+                監視が必要
+              </p>
+            </div>
+            <div className="p-3 bg-yellow-200/50 rounded-full">
+              <AlertCircle className="w-6 h-6 text-yellow-700" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="w-full bg-yellow-200 rounded-full h-1.5">
+              <div
+                className="bg-yellow-600 h-1.5 rounded-full"
+                style={{
+                  width: `${Math.min(
+                    100,
+                    (items.filter(
+                      (item) => item.priorityScore >= 40 && item.priorityScore < 70
+                    ).length /
+                      items.length) *
+                      100 *
+                      2
+                  )}%`,
+                }}
+              ></div>
+            </div>
+          </div>
         </div>
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-600">対応中SKU</p>
-          <p className="text-2xl font-bold text-blue-700 mt-1">
-            {items.filter((item) => item.hasActiveAction).length}
-          </p>
+
+        {/* 対応中SKU */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 border border-blue-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">対応中SKU</p>
+              <p className="text-3xl font-bold text-blue-800 mt-2">
+                {items.filter((item) => item.hasActiveAction).length}
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                アクション実行中
+              </p>
+            </div>
+            <div className="p-3 bg-blue-200/50 rounded-full">
+              <TrendingUp className="w-6 h-6 text-blue-700" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <div className="w-full bg-blue-200 rounded-full h-1.5">
+              <div
+                className="bg-blue-600 h-1.5 rounded-full"
+                style={{
+                  width: `${Math.min(
+                    100,
+                    (items.filter((item) => item.hasActiveAction).length /
+                      items.length) *
+                      100 *
+                      2
+                  )}%`,
+                }}
+              ></div>
+            </div>
+          </div>
         </div>
       </div>
 
