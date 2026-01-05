@@ -52,8 +52,11 @@ npm run dev
 # 開発サーバーを起動
 npm run dev
 
-# 本番用にビルド
+# 本番用にビルド（Vercel用）
 npm run build
+
+# GitHub Pages用にビルド
+npm run build:gh-pages
 
 # ビルドしたアプリをプレビュー
 npm run preview
@@ -105,19 +108,31 @@ dashboard-demo/
 
 ## デプロイ
 
+このプロジェクトは、環境変数で `base` パスを切り替えることで、複数のデプロイ先に対応しています。
+
+### Vercel（推奨）
+
+1. [Vercel](https://vercel.com) にログイン
+2. GitHubリポジトリを接続
+3. プロジェクト設定:
+   - **Framework Preset**: Vite
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+4. デプロイ実行
+
+Vercelは自動的に `base: '/'` でビルドされます。
+
 ### GitHub Pages
 
 ```bash
-# ビルド
-npm run build
+# GitHub Pages用にビルド（base: '/dashboard-demo/'）
+npm run build:gh-pages
 
-# dist フォルダをデプロイ
-# GitHub Pages の設定で、ブランチを gh-pages に設定
+# dist フォルダを gh-pages ブランチにデプロイ
+# GitHub リポジトリの Settings → Pages でブランチを gh-pages に設定
 ```
 
-### Vercel
-
-Vercelにリポジトリを接続すると、自動的にデプロイされます。
+または、GitHub Actions で自動デプロイを設定することもできます。
 
 ## ライセンス
 
