@@ -196,7 +196,7 @@ export function ActionsAndOutcomes() {
       kpi_snapshot_after: after,
       outcome_label: outcomeLabel,
       auto_comment: autoComment,
-      status: 'executed',
+      status: 'evaluated',
     }
 
     ActionLogRepository.save(updatedLog)
@@ -249,6 +249,47 @@ export function ActionsAndOutcomes() {
     }
   }
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'proposed':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-300">
+            提案中
+          </span>
+        )
+      case 'approved':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300">
+            承認済
+          </span>
+        )
+      case 'executed':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 border border-purple-300">
+            実行済
+          </span>
+        )
+      case 'evaluated':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 border border-green-300">
+            評価済
+          </span>
+        )
+      case 'cancelled':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 border border-gray-300">
+            中止
+          </span>
+        )
+      default:
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+            {status}
+          </span>
+        )
+    }
+  }
+
   const categories = [...new Set(logs.map((log) => log.category))]
 
   return (
@@ -294,6 +335,7 @@ export function ActionsAndOutcomes() {
               <option value="proposed">提案中</option>
               <option value="approved">承認済</option>
               <option value="executed">実行済</option>
+              <option value="evaluated">評価済</option>
               <option value="cancelled">中止</option>
             </select>
           </div>
@@ -344,7 +386,10 @@ export function ActionsAndOutcomes() {
                       {getActionTypeLabel(log.action_type)}
                     </span>
                   </div>
-                  {log.outcome_label && getOutcomeBadge(log.outcome_label)}
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(log.status)}
+                    {log.outcome_label && getOutcomeBadge(log.outcome_label)}
+                  </div>
                 </div>
                 <p className="text-sm text-gray-900 font-medium mb-1">
                   {log.sku_name}
@@ -728,7 +773,7 @@ export function ActionsAndOutcomes() {
               )}
 
               {/* 評価生成ボタン */}
-              {selectedLog.status === 'approved' &&
+              {(selectedLog.status === 'approved' || selectedLog.status === 'executed') &&
                 !selectedLog.kpi_snapshot_after && (
                   <div className="pt-4 border-t border-gray-200">
                     <button
@@ -758,22 +803,16 @@ export function ActionsAndOutcomes() {
 
               {/* メタ情報 */}
               <div className="pt-4 border-t border-gray-200">
-                <div className="grid grid-cols-2 gap-3 text-xs text-gray-600">
-                  <div>
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="text-gray-600">
                     <span className="font-semibold">実行者:</span>{' '}
                     {selectedLog.owner}
                   </div>
-                  <div>
-                    <span className="font-semibold">ステータス:</span>{' '}
-                    {selectedLog.status === 'proposed'
-                      ? '提案中'
-                      : selectedLog.status === 'approved'
-                      ? '承認済'
-                      : selectedLog.status === 'executed'
-                      ? '実行済'
-                      : '中止'}
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-gray-600">ステータス:</span>
+                    {getStatusBadge(selectedLog.status)}
                   </div>
-                  <div className="col-span-2">
+                  <div className="col-span-2 text-gray-600">
                     <span className="font-semibold">タイムスタンプ:</span>{' '}
                     {new Date(selectedLog.timestamp).toLocaleString('ja-JP')}
                   </div>

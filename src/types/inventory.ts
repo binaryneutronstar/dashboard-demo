@@ -114,7 +114,7 @@ export interface KPISnapshot {
 export type OutcomeLabel = 'improved' | 'neutral' | 'worsened'
 
 // アクションログ
-export type ActionStatus = 'proposed' | 'approved' | 'executed' | 'cancelled'
+export type ActionStatus = 'proposed' | 'approved' | 'executed' | 'evaluated' | 'cancelled'
 
 export interface ActionLog {
   action_id: string
