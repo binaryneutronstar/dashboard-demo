@@ -774,6 +774,7 @@ export function ActionsAndOutcomes() {
 
               {/* 評価生成ボタン */}
               {(selectedLog.status === 'approved' || selectedLog.status === 'executed') &&
+                selectedLog.kpi_snapshot_before &&
                 !selectedLog.kpi_snapshot_after && (
                   <div className="pt-4 border-t border-gray-200">
                     <button
@@ -786,6 +787,22 @@ export function ActionsAndOutcomes() {
                     <p className="text-xs text-gray-500 text-center mt-2">
                       ※ モックデータとして、ランダムにKPI afterと評価を生成します
                     </p>
+                  </div>
+                )}
+
+              {/* KPI before がない場合の警告 */}
+              {(selectedLog.status === 'approved' || selectedLog.status === 'executed') &&
+                !selectedLog.kpi_snapshot_before &&
+                !selectedLog.kpi_snapshot_after && (
+                  <div className="pt-4 border-t border-gray-200">
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <p className="text-sm text-yellow-800">
+                        ⚠️ このアクションはKPI beforeが記録されていないため、評価を生成できません。
+                      </p>
+                      <p className="text-xs text-yellow-700 mt-2">
+                        新しいバージョンではアクション確定時に自動的にKPI beforeが記録されます。
+                      </p>
+                    </div>
                   </div>
                 )}
 

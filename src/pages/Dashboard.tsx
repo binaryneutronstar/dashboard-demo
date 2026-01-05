@@ -37,7 +37,10 @@ export function Dashboard() {
       const activeLogs = logs.filter(
         (log) =>
           log.sku_id === item.id &&
-          (log.status === 'proposed' || log.status === 'approved')
+          (log.status === 'proposed' ||
+           log.status === 'approved' ||
+           log.status === 'executed' ||
+           log.status === 'evaluated')
       )
       return {
         ...item,

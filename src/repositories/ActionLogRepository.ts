@@ -136,9 +136,25 @@ export class ActionLogRepository {
           excessInventoryRisk: 10,
           priorityScore: 82,
         },
-        status: 'executed',
+        status: 'evaluated',
         owner: '在庫管理担当A',
         notes: '欠品リスク高のため発注増を承認',
+        kpi_snapshot_before: {
+          stockoutRisk: 85,
+          excessInventoryRisk: 10,
+          inventoryTurnoverDays: 5,
+          salesVelocity: 8.5,
+          currentStock: 45,
+        },
+        kpi_snapshot_after: {
+          stockoutRisk: 20,
+          excessInventoryRisk: 15,
+          inventoryTurnoverDays: 8,
+          salesVelocity: 9.5,
+          currentStock: 150,
+        },
+        outcome_label: 'improved',
+        auto_comment: '欠品リスクが高水準だったが、発注増により大幅に低下。次はリードタイム短縮施策の検討余地。',
         evaluation: {
           result: 'improved',
           mockMetrics: {
@@ -172,9 +188,25 @@ export class ActionLogRepository {
           excessInventoryRisk: 88,
           priorityScore: 71,
         },
-        status: 'executed',
+        status: 'evaluated',
         owner: '在庫管理担当B',
         notes: '在庫回転が遅く、賞味期限も近いため値下げ実施',
+        kpi_snapshot_before: {
+          stockoutRisk: 5,
+          excessInventoryRisk: 88,
+          inventoryTurnoverDays: 214,
+          salesVelocity: 2.1,
+          currentStock: 450,
+        },
+        kpi_snapshot_after: {
+          stockoutRisk: 8,
+          excessInventoryRisk: 48,
+          inventoryTurnoverDays: 95,
+          salesVelocity: 4.8,
+          currentStock: 270,
+        },
+        outcome_label: 'improved',
+        auto_comment: '過剰在庫は改善し、販売速度が向上。在庫回転が大幅改善。粗利への影響を確認。',
         evaluation: {
           result: 'improved',
           mockMetrics: {
@@ -213,6 +245,13 @@ export class ActionLogRepository {
         status: 'approved',
         owner: '在庫管理担当C',
         notes: '倉庫に在庫あり。移動で対応',
+        kpi_snapshot_before: {
+          stockoutRisk: 72,
+          excessInventoryRisk: 15,
+          inventoryTurnoverDays: 4,
+          salesVelocity: 3.2,
+          currentStock: 12,
+        },
       },
     ]
 
