@@ -2,7 +2,72 @@ import type { InventoryItem, RecommendedAction, ActionType } from '../types/inve
 
 const categories = ['アパレル', '食品', '家電', '日用品', '化粧品', '書籍']
 const regions = ['東京', '大阪', '名古屋', '福岡', '札幌']
-const stores = ['本店', '駅前店', '郊外店', '倉庫']
+const stores = ['都心旗艦店', '湾岸モール店', '北側ロードサイド店', '西エリア駅前店', '郊外アウトレット店']
+const warehouses = ['東日本DC', '西日本DC', 'ECフルフィルセンター', '北部ロジスティクスセンター']
+
+// カテゴリ別の商品名テンプレート
+const productTemplates: Record<string, string[]> = {
+  'アパレル': [
+    'ドライコットンTシャツ/ブラック/M',
+    'ストレッチデニムパンツ/インディゴ/30',
+    'フリースジャケット/グレー/L',
+    'ウールニットセーター/ネイビー/M',
+    'チノパンツ/ベージュ/32',
+    'ポロシャツ/ホワイト/L',
+    'ダウンジャケット/ブラック/M',
+    'カーディガン/ブラウン/L',
+  ],
+  '食品': [
+    '国産和牛ロース/100g',
+    '無添加食パン/6枚切',
+    '有機野菜セット/Mサイズ',
+    'プレミアムチーズ詰合せ',
+    '産地直送りんご/5個入',
+    '焼き菓子詰合せ/12個入',
+    '特選日本茶/100g',
+    'オーガニックコーヒー豆/200g',
+  ],
+  '家電': [
+    'ワイヤレスイヤホン/TWS-200',
+    '空気清浄機/AP-3000',
+    'ロボット掃除機/RC-500',
+    '電気ケトル/1.2L',
+    'ハンディ扇風機/ホワイト',
+    'スマートウォッチ/SW-100',
+    'デジタルカメラ/DC-800',
+    'ポータブルスピーカー/PS-300',
+  ],
+  '日用品': [
+    'エコ洗濯洗剤/詰替用/1L',
+    'ティッシュペーパー/5箱パック',
+    'トイレットペーパー/12ロール',
+    'ハンドソープ/ポンプ式/250ml',
+    'キッチンペーパー/4ロール',
+    'ゴミ袋/45L/30枚入',
+    'バスタオル/グレー/2枚組',
+    'フェイスタオル/ホワイト/5枚組',
+  ],
+  '化粧品': [
+    'モイスチャライザー/50ml',
+    'フェイスマスク/7枚入',
+    'クレンジングオイル/150ml',
+    'UVカットクリーム/SPF50/30ml',
+    'リップクリーム/無香料',
+    'ハンドクリーム/シアバター/50g',
+    'アイシャドウパレット/10色',
+    'フェイスパウダー/ナチュラル',
+  ],
+  '書籍': [
+    'ビジネス書/リーダーシップ論',
+    '小説/ミステリー新刊',
+    '実用書/料理レシピ集',
+    'マンガ/人気シリーズ最新巻',
+    '自己啓発書/習慣術',
+    '旅行ガイド/京都編',
+    '語学教材/英会話入門',
+    '雑誌/月刊ビジネス誌',
+  ],
+}
 
 // ランダム値生成（範囲指定）
 const random = (min: number, max: number) => Math.random() * (max - min) + min
@@ -130,7 +195,14 @@ export const generateInventoryItems = (count: number = 50): InventoryItem[] => {
   for (let i = 0; i < count; i++) {
     const category = categories[randomInt(0, categories.length)]
     const region = regions[randomInt(0, regions.length)]
-    const store = Math.random() > 0.3 ? stores[randomInt(0, stores.length)] : undefined
+
+    // 70%で店舗、30%で倉庫
+    let store: string | undefined
+    if (Math.random() > 0.3) {
+      store = stores[randomInt(0, stores.length)]
+    } else {
+      store = warehouses[randomInt(0, warehouses.length)]
+    }
 
     // 基本値
     const salesVelocity = Math.max(0.1, randomNormal(5, 3))
@@ -155,9 +227,14 @@ export const generateInventoryItems = (count: number = 50): InventoryItem[] => {
       inventoryTurnoverDays
     )
 
+    // カテゴリ別の商品名を取得
+    const templates = productTemplates[category]
+    const productName = templates[randomInt(0, templates.length)]
+    const skuSuffix = String.fromCharCode(65 + randomInt(0, 26)) + '-' + String(randomInt(1000, 9999))
+
     items.push({
       id: `SKU-${String(i + 1).padStart(4, '0')}`,
-      name: `${category}_商品${i + 1}`,
+      name: `${productName} ${skuSuffix}`,
       category,
       region,
       store,

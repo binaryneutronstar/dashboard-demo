@@ -1,19 +1,17 @@
 import { useState } from 'react'
-import { Package, FileText, Star, Trash2 } from 'lucide-react'
+import { Package, FileText, Trash2 } from 'lucide-react'
 import { Dashboard } from './pages/Dashboard'
-import { Actions } from './pages/Actions'
-import { Review } from './pages/Review'
+import { ActionsAndOutcomes } from './pages/ActionsAndOutcomes'
 import { ActionLogRepository } from './repositories/ActionLogRepository'
 
-type Tab = 'dashboard' | 'actions' | 'review'
+type Tab = 'dashboard' | 'actionsAndOutcomes'
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard')
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'ダッシュボード', icon: <Package className="w-5 h-5" /> },
-    { id: 'actions', label: 'アクションログ', icon: <FileText className="w-5 h-5" /> },
-    { id: 'review', label: 'アクション評価', icon: <Star className="w-5 h-5" /> },
+    { id: 'actionsAndOutcomes', label: 'アクション & アウトカム', icon: <FileText className="w-5 h-5" /> },
   ]
 
   const handleResetData = () => {
@@ -77,8 +75,7 @@ function App() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'dashboard' && <Dashboard />}
-        {activeTab === 'actions' && <Actions />}
-        {activeTab === 'review' && <Review />}
+        {activeTab === 'actionsAndOutcomes' && <ActionsAndOutcomes />}
       </main>
 
       {/* Footer */}

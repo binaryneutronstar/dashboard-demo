@@ -7,6 +7,13 @@ export interface SKU {
   store?: string
 }
 
+// アクション効果予測
+export interface ActionEffect {
+  projectedStockoutRisk: number
+  projectedExcessRisk: number
+  expectedImpact: string
+}
+
 // 在庫アイテム（分析対象）
 export interface InventoryItem extends SKU {
   currentStock: number
@@ -21,6 +28,10 @@ export interface InventoryItem extends SKU {
   salesHistory?: number[]
   recommendedAction?: RecommendedAction
   hasActiveAction?: boolean
+  projectedStock?: number
+  onOrder?: number
+  demandMultiplier?: number
+  actionEffect?: ActionEffect
 }
 
 // アクションタイプ
@@ -90,6 +101,18 @@ export interface Evaluation {
   evaluatedAt: string
 }
 
+// KPIスナップショット
+export interface KPISnapshot {
+  stockoutRisk: number
+  excessInventoryRisk: number
+  inventoryTurnoverDays: number
+  salesVelocity: number
+  currentStock: number
+}
+
+// アウトカムラベル
+export type OutcomeLabel = 'improved' | 'neutral' | 'worsened'
+
 // アクションログ
 export type ActionStatus = 'proposed' | 'approved' | 'executed' | 'cancelled'
 
@@ -108,4 +131,8 @@ export interface ActionLog {
   owner: string
   notes?: string
   evaluation?: Evaluation
+  kpi_snapshot_before?: KPISnapshot
+  kpi_snapshot_after?: KPISnapshot
+  outcome_label?: OutcomeLabel
+  auto_comment?: string
 }
