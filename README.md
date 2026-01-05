@@ -257,7 +257,7 @@ npm run build:gh-pages
 
 ## 📄 ライセンス
 
-MIT License
+Apache License 2.0
 
 ## 👤 作者
 

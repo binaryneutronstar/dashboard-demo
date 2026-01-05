@@ -141,33 +141,54 @@ const determineRecommendedAction = (
   excessRisk: number,
   _turnoverDays: number
 ): RecommendedAction | undefined => {
-  // 欠品リスクが高い
-  if (stockoutRisk > 60) {
+  // 【最優先】欠品リスクが非常に高い → 緊急発注
+  if (stockoutRisk > 70) {
     return {
       type: 'replenishment_adjust' as ActionType,
-      label: '発注増',
-      description: '欠品リスクが高いため、発注量を増やすことを推奨',
-      priority: stockoutRisk > 80 ? 'high' : 'medium',
+      label: '発注増（緊急）',
+      description: '欠品リスクが非常に高いため、至急発注量を増やすことを推奨',
+      priority: stockoutRisk > 85 ? 'high' : 'medium',
     }
   }
 
-  // 過剰在庫リスクが高い
-  if (excessRisk > 60) {
+  // 【最優先】過剰在庫リスクが非常に高い → 値下げ/販促で在庫処分
+  if (excessRisk > 70) {
     return {
       type: 'markdown_promo' as ActionType,
       label: '値下げ/販促',
-      description: '在庫回転が遅いため、値下げまたは販促を検討',
-      priority: excessRisk > 80 ? 'high' : 'medium',
+      description: '過剰在庫が深刻なため、値下げまたは販促による在庫処分を推奨',
+      priority: excessRisk > 85 ? 'high' : 'medium',
     }
   }
 
-  // 在庫移動が有効な場合
-  if (stockoutRisk > 40 && stockoutRisk < 60) {
+  // 【中優先】欠品リスク中程度 & 過剰在庫なし → 在庫移動
+  // （他店に余剰があり、こちらは不足しているケース）
+  if (stockoutRisk >= 45 && stockoutRisk <= 70 && excessRisk < 40) {
     return {
       type: 'transfer' as ActionType,
       label: '在庫移動',
-      description: '他店舗から在庫を移動することで欠品を回避',
-      priority: 'medium',
+      description: '他店舗に余剰在庫があれば移動することで欠品を回避可能',
+      priority: stockoutRisk > 60 ? 'medium' : 'low',
+    }
+  }
+
+  // 【低優先】欠品リスク中程度 → 発注微調整
+  if (stockoutRisk >= 40 && stockoutRisk <= 70) {
+    return {
+      type: 'replenishment_adjust' as ActionType,
+      label: '発注調整',
+      description: '欠品リスクがやや高いため、発注量の調整を検討',
+      priority: 'low',
+    }
+  }
+
+  // 【低優先】過剰在庫リスク中程度 → 販促検討
+  if (excessRisk >= 50 && excessRisk <= 70) {
+    return {
+      type: 'markdown_promo' as ActionType,
+      label: '販促検討',
+      description: '在庫回転がやや遅いため、販促施策を検討',
+      priority: 'low',
     }
   }
 
