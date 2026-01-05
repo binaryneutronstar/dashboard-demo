@@ -11,6 +11,8 @@ import type {
   ReplenishmentPayload,
   TransferPayload,
   MarkdownPromoPayload,
+  ActionEffect,
+  KPISnapshot,
 } from '../types/inventory'
 
 export function Dashboard() {
@@ -58,7 +60,63 @@ export function Dashboard() {
     const payload = generateActionPayload(item, actionType)
     setActionPayload(payload)
 
+    // アクション効果を計算
+    const actionEffect = calculateActionEffect(item, actionType, payload)
+
+    // アイテムにアクション効果を設定
+    const updatedItem = {
+      ...item,
+      actionEffect,
+    }
+    setSelectedItem(updatedItem)
+
     setIsModalOpen(true)
+  }
+
+  const calculateActionEffect = (
+    item: InventoryItem,
+    actionType: ActionType,
+    payload: ActionPayload
+  ): ActionEffect => {
+    let projectedStockoutRisk = item.stockoutRisk
+    let projectedExcessRisk = item.excessInventoryRisk
+    let expectedImpact = ''
+
+    switch (actionType) {
+      case 'replenishment_adjust': {
+        const replenishmentPayload = payload as ReplenishmentPayload
+        if (replenishmentPayload.type === 'increase') {
+          projectedStockoutRisk = Math.max(0, item.stockoutRisk - 35)
+          projectedExcessRisk = Math.min(100, item.excessInventoryRisk + 10)
+          expectedImpact = `発注量を${replenishmentPayload.percentageChange}%増加することで、欠品リスクを約35pt低減できる見込み`
+        } else {
+          projectedStockoutRisk = Math.min(100, item.stockoutRisk + 15)
+          projectedExcessRisk = Math.max(0, item.excessInventoryRisk - 25)
+          expectedImpact = `発注量を削減することで、過剰在庫リスクを約25pt低減できる見込み`
+        }
+        break
+      }
+
+      case 'transfer': {
+        const transferPayload = payload as TransferPayload
+        projectedStockoutRisk = Math.max(0, item.stockoutRisk - 30)
+        expectedImpact = `${transferPayload.quantity}個を移動することで、欠品リスクを約30pt低減できる見込み`
+        break
+      }
+
+      case 'markdown_promo': {
+        const markdownPayload = payload as MarkdownPromoPayload
+        projectedExcessRisk = Math.max(0, item.excessInventoryRisk - 40)
+        expectedImpact = `${markdownPayload.discountRate}%値下げにより、過剰在庫リスクを約40pt低減、販売速度が向上する見込み`
+        break
+      }
+    }
+
+    return {
+      projectedStockoutRisk: Math.round(projectedStockoutRisk),
+      projectedExcessRisk: Math.round(projectedExcessRisk),
+      expectedImpact,
+    }
   }
 
   const generateActionPayload = (
@@ -104,6 +162,15 @@ export function Dashboard() {
   const handleConfirm = () => {
     if (!selectedItem || !selectedActionType || !actionPayload) return
 
+    // KPIスナップショット（Before）を作成
+    const kpiSnapshotBefore: KPISnapshot = {
+      stockoutRisk: selectedItem.stockoutRisk,
+      excessInventoryRisk: selectedItem.excessInventoryRisk,
+      inventoryTurnoverDays: selectedItem.inventoryTurnoverDays,
+      salesVelocity: selectedItem.salesVelocity,
+      currentStock: selectedItem.currentStock,
+    }
+
     // アクションログを作成
     const actionLog: ActionLog = {
       action_id: `action-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -127,17 +194,33 @@ export function Dashboard() {
       status: 'approved',
       owner: '在庫管理担当',
       notes: '',
+      kpi_snapshot_before: kpiSnapshotBefore,
     }
 
     // ログを保存
     ActionLogRepository.save(actionLog)
 
-    // アイテムの状態を更新
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === selectedItem.id ? { ...item, hasActiveAction: true } : item
+    // アクション効果をアイテムに適用
+    if (selectedItem.actionEffect) {
+      const updatedItem: InventoryItem = {
+        ...selectedItem,
+        stockoutRisk: selectedItem.actionEffect.projectedStockoutRisk,
+        excessInventoryRisk: selectedItem.actionEffect.projectedExcessRisk,
+        hasActiveAction: true,
+      }
+
+      // アイテムの状態を更新
+      setItems((prevItems) =>
+        prevItems.map((item) => (item.id === selectedItem.id ? updatedItem : item))
       )
-    )
+    } else {
+      // アクション効果がない場合は、hasActiveActionのみ更新
+      setItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === selectedItem.id ? { ...item, hasActiveAction: true } : item
+        )
+      )
+    }
 
     // モーダルを閉じる
     setIsModalOpen(false)

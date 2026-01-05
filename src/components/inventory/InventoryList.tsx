@@ -1,4 +1,4 @@
-import { AlertCircle, TrendingUp, Package, Tag } from 'lucide-react'
+import { AlertCircle, TrendingUp, Package, Tag, ArrowDown } from 'lucide-react'
 import type { InventoryItem, ActionType } from '../../types/inventory'
 
 interface InventoryListProps {
@@ -150,42 +150,69 @@ export function InventoryList({ items, onActionClick }: InventoryListProps) {
                 {item.salesVelocity}/日
               </td>
               <td className="px-4 py-3 text-right">
-                <span
-                  className={`text-sm font-semibold ${
-                    item.stockoutRisk > 70
-                      ? 'text-red-600'
-                      : item.stockoutRisk > 40
-                      ? 'text-yellow-600'
-                      : 'text-green-600'
-                  }`}
-                >
-                  {item.stockoutRisk}%
-                </span>
+                <div className="flex flex-col items-end gap-1">
+                  <span
+                    className={`text-sm font-semibold ${
+                      item.stockoutRisk > 70
+                        ? 'text-red-600'
+                        : item.stockoutRisk > 40
+                        ? 'text-yellow-600'
+                        : 'text-green-600'
+                    }`}
+                  >
+                    {item.stockoutRisk}%
+                  </span>
+                  {item.actionEffect && item.actionEffect.projectedStockoutRisk !== item.stockoutRisk && (
+                    <div className="flex items-center gap-1 text-xs">
+                      <ArrowDown className="w-3 h-3 text-blue-600" />
+                      <span className="text-blue-600 font-medium">
+                        {item.actionEffect.projectedStockoutRisk}%
+                      </span>
+                    </div>
+                  )}
+                </div>
               </td>
               <td className="px-4 py-3 text-right">
-                <span
-                  className={`text-sm font-semibold ${
-                    item.excessInventoryRisk > 70
-                      ? 'text-red-600'
-                      : item.excessInventoryRisk > 40
-                      ? 'text-yellow-600'
-                      : 'text-green-600'
-                  }`}
-                >
-                  {item.excessInventoryRisk}%
-                </span>
+                <div className="flex flex-col items-end gap-1">
+                  <span
+                    className={`text-sm font-semibold ${
+                      item.excessInventoryRisk > 70
+                        ? 'text-red-600'
+                        : item.excessInventoryRisk > 40
+                        ? 'text-yellow-600'
+                        : 'text-green-600'
+                    }`}
+                  >
+                    {item.excessInventoryRisk}%
+                  </span>
+                  {item.actionEffect && item.actionEffect.projectedExcessRisk !== item.excessInventoryRisk && (
+                    <div className="flex items-center gap-1 text-xs">
+                      <ArrowDown className="w-3 h-3 text-blue-600" />
+                      <span className="text-blue-600 font-medium">
+                        {item.actionEffect.projectedExcessRisk}%
+                      </span>
+                    </div>
+                  )}
+                </div>
               </td>
               <td className="px-4 py-3">
-                {item.recommendedAction ? (
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-700">
-                      {item.recommendedAction.label}
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-sm text-gray-400">-</span>
-                )}
+                <div className="space-y-1">
+                  {item.recommendedAction ? (
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-700">
+                        {item.recommendedAction.label}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-gray-400">-</span>
+                  )}
+                  {item.actionEffect && (
+                    <div className="text-xs text-gray-600 max-w-xs">
+                      {item.actionEffect.expectedImpact}
+                    </div>
+                  )}
+                </div>
               </td>
               <td className="px-4 py-3">
                 <div className="flex flex-wrap gap-2">
