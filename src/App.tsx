@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Package, FileText, Trash2, Info } from 'lucide-react'
+import { Package, FileText, Trash2 } from 'lucide-react'
 import { Dashboard } from './pages/Dashboard'
 import { ActionsAndOutcomes } from './pages/ActionsAndOutcomes'
 import { ActionLogRepository } from './repositories/ActionLogRepository'
@@ -9,7 +9,6 @@ type Tab = 'dashboard' | 'actionsAndOutcomes'
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard')
-  const [showDemoInfo, setShowDemoInfo] = useState(false)
   const [unevaluatedCount, setUnevaluatedCount] = useState(0)
 
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
@@ -89,14 +88,6 @@ function App() {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setShowDemoInfo(!showDemoInfo)}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-blue-700 hover:bg-blue-100 rounded-lg transition-colors"
-                title="デモについて"
-              >
-                <Info className="w-4 h-4" />
-                <span className="hidden sm:inline">デモについて</span>
-              </button>
-              <button
                 onClick={handleResetData}
                 className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 title="データをリセット"
@@ -106,22 +97,6 @@ function App() {
               </button>
             </div>
           </div>
-
-          {/* デモ情報パネル */}
-          {showDemoInfo && (
-            <div className="mt-4 p-4 bg-white rounded-lg shadow-sm border border-blue-200">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">
-                このデモについて
-              </h3>
-              <ul className="text-sm text-gray-700 space-y-1.5 list-disc list-inside">
-                <li>モックデータのみを使用し、外部APIや認証はありません</li>
-                <li>データはブラウザのlocalStorageに保存されます</li>
-                <li>商品名・拠点名はダミーデータです（実在しません）</li>
-                <li>アクションの実行は非破壊的で、実システムへの影響はありません</li>
-                <li>評価生成は70%成功/20%中立/10%悪化の確率でランダム生成されます</li>
-              </ul>
-            </div>
-          )}
         </div>
 
         {/* Tabs */}
