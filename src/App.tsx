@@ -3,6 +3,7 @@ import { Package, FileText, Trash2, Info } from 'lucide-react'
 import { Dashboard } from './pages/Dashboard'
 import { ActionsAndOutcomes } from './pages/ActionsAndOutcomes'
 import { ActionLogRepository } from './repositories/ActionLogRepository'
+import { InfoTooltip } from './components/common/InfoTooltip'
 
 type Tab = 'dashboard' | 'actionsAndOutcomes'
 
@@ -65,13 +66,26 @@ function App() {
       <header className="bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm border-b border-blue-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                在庫管理アクショナブルダッシュボード
-              </h1>
-              <p className="text-sm text-gray-700 mt-1 font-medium">
-                小売本部向け意思決定支援デモ
-              </p>
+            <div className="flex items-center gap-2">
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  在庫管理アクショナブルダッシュボード
+                </h1>
+                <p className="text-sm text-gray-700 mt-1 font-medium">
+                  小売本部向け意思決定支援デモ
+                </p>
+              </div>
+              <InfoTooltip
+                title="このデモについて"
+                content="これは小売本部向けの「在庫管理アクショナブルダッシュボード」のモックです。可視化ではなく、在庫課題の特定からアクション提示、ログ、KPI差分、アウトカムコメントまでの意思決定ループを再現します。外部システムは更新せず、データはモック＋ブラウザ内保存（localStorage）のみです。"
+                bullets={[
+                  'アクション：発注調整 / 在庫移動 / 値下げ・販促',
+                  '反映：確定後、見通し指標（リスク/回転など）に即時反映',
+                  'ログ：アクションと根拠指標を記録',
+                  'アウトカム：KPIのBefore/Afterと自動コメント（成功/失敗も混在）',
+                ]}
+                className="mt-1"
+              />
             </div>
             <div className="flex items-center gap-3">
               <button
